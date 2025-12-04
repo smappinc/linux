@@ -1,0 +1,59 @@
+#!/bin/bash
+
+# This script sets directory permscans for world-writable files, checks Apache status, and logs CPU/RAM usage.
+
+# Variables
+log="directory of log"
+directory="/var/www/html"
+time=`date`
+
+# Log time script started running
+echo "========== Script Start ==========" | tee -a "$log"
+echo "$time" | tee -a "$log"
+
+# ---------- 1 APACHE --------------------
+# Check if the apache service is active or not
+if systemctl is-active --quiet apache2;
+then
+echo "Apache service is already active." | tee -a "$log"
+else
+echo "Apache is not active!" | tee -a "$log"
+echo "Attempting to restart..." | tee -a "$log"
+
+systemctl restart apache2
+
+# Check again if apache service was restarted
+if systemctl is-active --quiet apache2;
+then
+echo "Apache restarted successfully." | tee -a "$log"
+else
+echo "Failed to restart Apache!." | tee -a "$log"
+fi
+
+fi
+
+# ------------- 2 SCANNING -------------------
+# Scanning directory /var/www
+echo "----------------" | tee -a "$log"
+echo "Scanning directory" | tee -a "$log"
+
+# Find world-writable files and log output
+find /var/www/html -type f -perm -o=w -exec ls -l {} \; | tee -a "$log"
+
+# Show scan completed
+echo "Scanning completed" | tee -a "$log"
+echo "----------------" | tee -a "$log"
+
+# ------------- 3 CPU/RAM -------------------
+# Log CPU Usage
+echo "CPU Usage:" | tee -a "$log"
+top -bn1 | grep "Cpu(s)" | tee -a "$log"
+
+# Log RAM Usage
+echo "Memory Usage:" | tee -a "$log"
+free -h | tee -a "$log"
+
+
+echo "========== Script Stop  ==========" | tee -a "$log"
+# crontab
+# */10 * * * * /file/file
