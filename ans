@@ -1,0 +1,29 @@
+#
+# ssh-keygen -t ed25519
+# ssh-copy-id -i /home/b20865/.ssh/id_ed25519.pub b20150@192.168.43.76
+
+---
+- hosts: all
+  become: yes
+
+  vars:
+    apache_pkg: apache2
+    mariadb_pkg: mariadb-server
+
+  tasks:
+  - name: update cache
+    apt:
+      update_cache: yes
+
+  - name: Install packages
+    apt:
+      name:
+        - "{{ apache_pkg }}"
+        - "{{ mariadb_pkg }}"
+      state: present
+
+  - name: check apache
+    service:
+      name: apache2
+      state: started
+      enabled: yes
